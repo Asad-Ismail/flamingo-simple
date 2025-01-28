@@ -154,6 +154,7 @@ lang_x = self.gated_cross_attn_layer(
     use_cached_media=self.use_cached_media,
 )
 lang_x = self.decoder_layer(lang_x, attention_mask=attention_mask)
+
 ```
 
 
@@ -180,6 +181,13 @@ def forward(self, x, media, media_locations):
 
     # 3. Calculate attention scores and apply mask
     sim = einsum("... i d, ... j d -> ... i j", q, k)  # [1, 8, 8, 192]
+    ## Attend only to valid media locations
+    media_time = torch.arange(T_img, device=x.device) + 1
+    text_time = media_locations.cumsum(dim=-1)
+    # Repeat each number n times (for media visual tokens perceriver generates 64 qeries per image )
+    media_time = repeat(media_time, "j -> 1 1 1 (j n)", n=n)
+    text_to_media_mask = torch.eq(text_time, media_time)
+
     sim = sim.masked_fill(~text_to_media_mask, -inf)   # [1, 8, 8, 192]
     attn = sim.softmax(dim=-1)                         # [1, 8, 8, 192]
 
@@ -190,9 +198,12 @@ def forward(self, x, media, media_locations):
 
 
 - Text tokens only attend to valid media locations
-- Example with media_locations = [1, 0, 0, 1, 0, 0]:
+- Example:
+- media_locations = [1, 0, 0, 1, 0, 0]
 - text_time becomes [1, 1, 1, 2, 2, 2]
 - media_time = [1, 2]
+- Repeat each number 64 times (for media visual tokens perceriver gnerates 64 qeries per image )
+  meida_time= [1,1,1...64 times, 2,2,2...64 times]
 - First three tokens attend to first image
 - Last three tokens attend to second image
 
