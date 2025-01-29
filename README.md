@@ -1,4 +1,4 @@
-# <img src="assets/flamingo.png" width="30" height="30" alt="Flamingo Logo" style="vertical-align: middle;"> Simple Flamingo 
+# <img src="assets/flamingo_logo.png" width="30" height="30" alt="Flamingo Logo" style="vertical-align: middle;"> Simple Flamingo 
 
 
 This is a simplified reimplementation of the Flamingo model [Flamingo Paper](https://arxiv.org/pdf/2204.14198), focused on single GPU training with smaller datasets for educational purposes. The goal is to understand the core mechanics without the complexity of distributed training.
@@ -152,8 +152,9 @@ lang_x = self.gated_cross_attn_layer(
     self.vis_x,
     media_locations=self.media_locations,
     use_cached_media=self.use_cached_media,
-)
-lang_x = self.decoder_layer(lang_x, attention_mask=attention_mask)
+) # [2, 256, 768] [B, T_txt, D_txt]
+lang_x = self.decoder_layer(lang_x, attention_mask=attention_mask) # [2, 256, 768] [B, T_txt, D_txt]
+logits = self.lm_head(outputs) # Projects to output Vocab dim [2, 256, 50267] [B, T_txt, D_vocab]
 
 ```
 
@@ -165,22 +166,22 @@ The gated cross-attention allows the model to only selectively attend to visual 
 ```python
 def forward(self, x, media, media_locations):
     # Input shapes:
-    # x: [B, T_txt, D_txt] = [1, 8, 1024]        # 8 text tokens
-    # media: [B, T_img, n, D] = [1, 3, 64, 1024]  # 3 images, 64 tokens each
-    # media_locations: [B, T_txt] = [1, 8]        # Binary mask for <image> positions
+    # x: [B, T_txt, D_txt] = [2, 256, 512]        # 8 text tokens
+    # media: [B, T_img, n, D] = [2, 2, 64, 1024]  # 2 images, 64 tokens each
+    # media_locations: [B, T_txt] = [2, 256]        # Binary mask for <image> positions in text
 
-    # 1. Create Q, K, V
-    q = self.to_q(x)                          # [1, 8, 512] (if heads=8, dim_head=64)
-    media = rearrange(media, "b t n d -> b (t n) d")  # [1, 192, 1024]
-    k, v = self.to_kv(media).chunk(2, dim=-1)  # Each: [1, 192, 512]
+    # Create Q, K, V
+    q = self.to_q(x)                          # [2, 256, 512] (heads=8, dim_head=64)
+    media = rearrange(media, "b t n d -> b (t n) d")  # [2, 128, 1024] (128=2 images * 64 tokens)
+    k, v = self.to_kv(media).chunk(2, dim=-1)  # Each: [2, 128, 512]
 
-    # 2. Reshape for multi-head attention (h=8 heads)
-    q = rearrange(q, "b n (h d) -> b h n d", h=h)     # [1, 8, 8, 64]
-    k = rearrange(k, "b n (h d) -> b h n d", h=h)     # [1, 8, 192, 64]
-    v = rearrange(v, "b n (h d) -> b h n d", h=h)     # [1, 8, 192, 64]
+    # Reshape for multi-head attention (h=8 heads)
+    q = rearrange(q, "b n (h d) -> b h n d", h=h)     # [2, 8, 256, 64]
+    k = rearrange(k, "b n (h d) -> b h n d", h=h)     # [2, 8, 128, 64]
+    v = rearrange(v, "b n (h d) -> b h n d", h=h)     # [2, 8, 128, 64]
 
-    # 3. Calculate attention scores and apply mask
-    sim = einsum("... i d, ... j d -> ... i j", q, k)  # [1, 8, 8, 192]
+    # Calculate attention scores and apply mask
+    sim = einsum("... i d, ... j d -> ... i j", q, k)  # [2, 8, 256, 128]
     ## Attend only to valid media locations
     media_time = torch.arange(T_img, device=x.device) + 1
     text_time = media_locations.cumsum(dim=-1)
@@ -188,12 +189,13 @@ def forward(self, x, media, media_locations):
     media_time = repeat(media_time, "j -> 1 1 1 (j n)", n=n)
     text_to_media_mask = torch.eq(text_time, media_time)
 
-    sim = sim.masked_fill(~text_to_media_mask, -inf)   # [1, 8, 8, 192]
-    attn = sim.softmax(dim=-1)                         # [1, 8, 8, 192]
+    sim = sim.masked_fill(~text_to_media_mask, -inf)   # [2, 8, 256, 128]
+    attn = sim.softmax(dim=-1)                         # [2, 8, 256, 128]
 
-    # 4. Final output
-    out = einsum("... i j, ... j d -> ... i d", attn, v)  # [1, 8, 8, 64]
-    out = rearrange(out, "b h n d -> b n (h d)")          # [1, 8, 512]
+    # output
+    out = einsum("... i j, ... j d -> ... i d", attn, v)  # [2, 8, 256, 64]
+    out = rearrange(out, "b h n d -> b n (h d)")          # [2, 256, 512]
+    out= self.to_out(out) # projecting back to text dim     [2, 256, 768 ]
 ```
 
 

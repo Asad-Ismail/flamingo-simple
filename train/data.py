@@ -16,7 +16,7 @@ from PIL import Image
 import base64
 from scipy.optimize import linear_sum_assignment
 
-from data_utils import *
+from .data_utils import *
 
 Image.MAX_IMAGE_PIXELS = 1000000000
 N_CHANNELS = 3
