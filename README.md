@@ -99,6 +99,10 @@ The OPT-125m language model is modified with:
 1. GatedCrossAttention layers before every transformer decoder layer
 2. Flamingo layer wrapping of original decoder layers
 
+<p align="center">
+  <img src="assets/gated_self_attn.png" width="400" height="250"  alt="self attention"/>
+</p>
+
 ```python
 # 1. Initialize base language model
 lang_encoder = AutoModelForCausalLM.from_pretrained('opt-125m')
