@@ -1,4 +1,4 @@
-# <img src="assets/flamingo_logo.png" width="30" height="30" alt="Flamingo Logo" style="vertical-align: middle;"> Simple Flamingo 
+# <img src="assets/flamingo.png" width="30" height="30" alt="Flamingo Logo" style="vertical-align: middle;"> Simple Flamingo 
 
 
 This is a simplified reimplementation of the Flamingo model [Flamingo Paper](https://arxiv.org/pdf/2204.14198), focused on single GPU training with smaller datasets for educational purposes. The goal is to understand the core mechanics without the complexity of distributed training.
@@ -10,7 +10,7 @@ Inspired by:
 ## Model Architecture
 
 <p align="center">
-  <img src="assets/flamingo_Arch.png" width="400"  alt="Flamingo Arch"/>
+  <img src="assets/flamingo_arch.png" width="400"  alt="Flamingo Arch"/>
 </p>
 
 ## Model Workflow
