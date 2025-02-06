@@ -17,7 +17,7 @@ Inspired by:
 
 ### Vision Components and workflow
 - **Vision Encoder**: CLIP ViT-L-14
-- **Perceiver Resampler**: height="250"
+- **Perceiver Resampler**:
 
 <p align="center">
   <img src="assets/perceiver_resampler.png" width="400" height="250"  alt="Flamingo Arch"/>
