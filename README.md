@@ -10,7 +10,7 @@ Inspired by:
 ## Model Architecture
 
 <p align="center">
-  <img src="assets/flamingo_arch.png" width="400"  alt="Flamingo Arch"/>
+  <img src="assets/flamingo_arch.png" width="370" height="220"  alt="Flamingo Arch"/>
 </p>
 
 ## Model Workflow
@@ -20,7 +20,7 @@ Inspired by:
 - **Perceiver Resampler**: height="250"
 
 <p align="center">
-  <img src="assets/perceiver_resampler.png" width="400" height="250"  alt="Flamingo Arch"/>
+  <img src="assets/perceiver_resampler.png" width="350" height="250"  alt="Flamingo Arch"/>
 </p>
 
 

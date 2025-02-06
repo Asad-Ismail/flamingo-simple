@@ -180,39 +180,9 @@ def create_minimal_coco_dataset(output_dir, num_samples_laion=50, num_samples_mm
             successful_samples += 1
             print(f"  Successfully added sample {sample_id}")
 
-def verify_datasets(output_dir):
-    """Verify both datasets"""
-    print("\nVerifying datasets...")
-    
-    for dataset_type in ["laion", "mmc4"]:
-        tar_path = os.path.join(output_dir, f"{dataset_type}-shard-0000.tar")
-        print(f"\nChecking {dataset_type} dataset:")
-        
-        try:
-            with tarfile.open(tar_path, 'r') as tar:
-                members = tar.getmembers()
-                print(f"Total files: {len(members)}")
-                
-                # Show sample contents
-                for member in members[:2]:  # Show first 2 samples
-                    print(f"\nFile: {member.name}")
-                    print(f"Size: {member.size} bytes")
-                    print(f"Pax headers: {member.pax_headers}")
-                    
-                    # If it's a JSON file, show its contents
-                    if member.name.endswith('_json'):
-                        f = tar.extractfile(member)
-                        if f:
-                            content = json.loads(f.read().decode('utf-8'))
-                            print("Content summary:")
-                            print(f"- Number of images: {len(content['image_info'])}")
-                            print(f"- Number of texts: {len(content['text_list'])}")
-                            print(f"- Similarity matrix shape: {len(content['similarity_matrix'])}x{len(content['similarity_matrix'][0])}")
-        except Exception as e:
-            print(f"Error verifying {dataset_type} dataset: {e}")
+
 
 if __name__ == "__main__":
     output_dir = "./minimal_datasets"
     create_minimal_coco_dataset(output_dir, num_samples_laion=50, num_samples_mmc4=50)
-    verify_datasets(output_dir)
     print("\nDataset creation completed!")
