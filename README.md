@@ -17,7 +17,7 @@ Inspired by:
 
 ### Vision Components and workflow
 - **Vision Encoder**: CLIP ViT-L-14
-- **Perceiver Resampler**: height="250"
+- **Perceiver Resampler**:
 
 <p align="center">
   <img src="assets/perceiver_resampler.png" width="350" height="250"  alt="Flamingo Arch"/>
@@ -98,6 +98,10 @@ The OPT-125m language model is modified with:
 
 1. GatedCrossAttention layers before every transformer decoder layer
 2. Flamingo layer wrapping of original decoder layers
+
+<p align="center">
+  <img src="assets/gated_self_attn.png" width="400" height="250"  alt="self attention"/>
+</p>
 
 ```python
 # 1. Initialize base language model
