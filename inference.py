@@ -6,7 +6,7 @@ from src.factory import create_model_and_transforms
 from huggingface_hub import hf_hub_download
 
 class InferenceConfig:
-    def __init__(self):
+    def __init__(self):s
         # Model paths
         self.vision_encoder_path = "ViT-L-14"
         self.vision_encoder_pretrained = "openai"
