@@ -120,7 +120,7 @@ def train_step(model, batch_laion, batch_mmc4, optimizer, config, tokenizer):
     images = rearrange(images, "(b t f) c h w -> b t f c h w", t=1, f=1)
     input_ids = batch_laion[1][0].to(config.device)
     attention_mask = batch_laion[1][1].to(config.device)
-
+    print(attention_mask)
     # set up labels; language model is expected to handle shifting
     labels = input_ids.clone()
     labels[labels == tokenizer.pad_token_id] = -100

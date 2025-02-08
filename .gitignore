@@ -43,5 +43,6 @@ env/
 htmlcov/
 .pytest_cache/
 train/__pycache__/
+src/__pycache__/** 
 
 

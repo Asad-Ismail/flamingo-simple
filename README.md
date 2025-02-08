@@ -51,37 +51,29 @@ perceiver_output = perceiver(vision_features)
 
 ``` python
 def perceiver_resampler(
-    x_f,                # Shape: [1, 224*224, 1024] - Visual features
-    time_embeddings,    # Shape: [1, 1, 1024] - Time position embeddings
-    x,                  # Shape: [64, 1024] - Learned latents (R=64)
+    x_f,                # Shape: [2, 256, 1024] - Visual features 
+    x,                  # Shape: [2, 64, 1024] - Learned latents (R=64)
     num_layers,         # Number of layers (scalar)
 ):
-
-
-    # Add time embeddings
-    # x_f: [1, 224*224, 1024] + time_embeddings: [1, 1, 1024] (broadcast)
-    # [1, 224*224, 1024]
-    x_f = x_f + time_embeddings
-    
     # Flatten
-    # [1, 224*224, 1024] -> [50176, 1024] (where 50176 = 1 * 224 * 224)
+    # [2, 256, 1024] -> [2, 256, 1024] (we keep batch dimension)
     x_f = flatten(x_f)
 
     for i in range(num_layers):
         # Attention step
-        # x shape: [64, 1024] (64 queries)
-        # concat([x_f, x]) shape: [50240, 1024] (keys/values) (50240 = 50176 + 64)
-        # attention_output shape: [64, 1024]
-        # x + attention_output shape: [64, 1024]
+        # x shape: [2, 64, 1024] (queries)
+        # concat([x_f, x]) shape: [2, 320, 1024] (keys/values) (320 = 256 + 64)
+        # attention_output shape: [2, 64, 1024]
+        # x + attention_output shape: [2, 64, 1024]
         x = x + attention_i(q=x, kv=concat([x_f, x]))
         
         # Feed forward step
-        # Input shape: [64, 1024]
-        # ffw_output shape: [64, 1024]
-        # x + ffw_output shape: [64, 1024]
+        # Input shape: [2, 64, 1024]
+        # ffw_output shape: [2, 64, 1024]
+        # x + ffw_output shape: [2, 64, 1024]
         x = x + ffw_i(x)
     
-    # output shape: [64, 1024]
+    # output shape: [2, 64, 1024]
     return x
 ```
 
