@@ -59,7 +59,7 @@ def create_mmc4_sample(images, captions):
     
     return data
 
-def create_minimal_coco_dataset(output_dir, num_samples_laion=50, num_samples_mmc4=30):
+def create_minimal_coco_dataset(output_dir, num_samples_laion=50, num_samples_mmc4=50):
     os.makedirs(output_dir, exist_ok=True)
     
     # Download and load COCO annotations

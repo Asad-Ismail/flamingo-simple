@@ -75,16 +75,14 @@ def setup_model(config):
     
     # Create model and transforms
     print("Creating model and transforms...")
-    results = create_model_and_transforms(
+    model, image_processor, tokenizer = create_model_and_transforms(
         clip_vision_encoder_path=config.vision_encoder_path,
         clip_vision_encoder_pretrained=config.vision_encoder_pretrained,
         lang_encoder_path=config.lm_path,
         tokenizer_path=config.tokenizer_path,
         cross_attn_every_n_layers=config.cross_attn_every_n_layers,
     )
-    print(f"Got {len(results)} values from create_model_and_transforms")
-    model, image_processor, tokenizer = results
-    
+      
     # Ensure tokenizer has pad token
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
