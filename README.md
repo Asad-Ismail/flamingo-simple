@@ -51,27 +51,27 @@ perceiver_output = perceiver(vision_features)
 
 ``` python
 def perceiver_resampler(
-    x_f,                # Shape: [4, 256, 1024] - Visual features 
-    x,                  # Shape: [4, 64, 1024] - Learned latents (R=64)
+    x_f,                # Shape: [2,2,256, 1024] - Visual features 
+    x,                  # Shape: [2,2, 64, 1024] - Learned latents (R=64)
     num_layers,         # Number of layers (scalar)
 ):
     # Flatten
 
     for i in range(num_layers):
         # Attention step
-        # x shape: [4, 64, 1024] (queries)
-        # concat([x_f, x]) shape: [4, 320, 1024] (keys/values) (320 = 256 + 64)
-        # attention_output shape: [4, 64, 1024]
-        # x + attention_output shape: [4, 64, 1024]
+        # x shape: [2,2, 64, 1024] (queries)
+        # concat([x_f, x]) shape: [2,2, 320, 1024] (keys/values) (320 = 256 + 64)
+        # attention_output shape: [2,2, 64, 1024]
+        # x + attention_output shape: [2,2, 64, 1024]
         x = x + attention_i(q=x, kv=concat([x_f, x]))
         
         # Feed forward step
-        # Input shape: [4, 64, 1024]
-        # ffw_output shape: [4, 64, 1024]
-        # x + ffw_output shape: [4, 64, 1024]
+        # Input shape: [2,2, 64, 1024]
+        # ffw_output shape: [2,2, 64, 1024]
+        # x + ffw_output shape: [2,2, 64, 1024]
         x = x + ffw_i(x)
     
-    # output shape: [4, 64, 1024]
+    # output shape: [2,2, 64, 1024]
     return x
 ```
 
@@ -162,7 +162,7 @@ The gated cross-attention allows the model to only selectively attend to visual 
 def forward(self, x, media, media_locations):
     # Input shapes:
     # x: [B, T_txt, D_txt] = [2, 256, 768]       
-    # media: [B, T_img, n, D] = [4, 1, 64, 1024]  # 2 images, 64 tokens each
+    # media: [B, T_img, n, D] = [2, 2, 64, 1024]  # 2 images, 64 tokens each
     # media_locations: [B, T_txt] = [2, 256]        # Binary mask for <image> positions in text
 
     # Create Q, K, V

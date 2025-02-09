@@ -4,9 +4,12 @@ from PIL import Image
 import requests
 from src.factory import create_model_and_transforms
 from huggingface_hub import hf_hub_download
+import matplotlib.pyplot as plt
+import math
+    
 
 class InferenceConfig:
-    def __init__(self):s
+    def __init__(self):
         # Model paths
         self.vision_encoder_path = "ViT-L-14"
         self.vision_encoder_pretrained = "openai"
@@ -83,6 +86,62 @@ def load_demo_images():
     
     return [demo_image_one, demo_image_two, query_image]
 
+def display_images(images, titles=None, cols=3, figsize=(15, 10), suptitle=None):
+    """
+    Display a list of images in a grid layout with customizable parameters
+    
+    Args:
+        images: List of PIL Image objects or numpy arrays
+        titles: List of strings for image titles (optional)
+        cols: Number of columns in the grid (default: 3)
+        figsize: Tuple of (width, height) for the figure (default: (15, 10))
+        suptitle: Main title for entire figure (optional)
+    """
+    # Handle empty image list
+    if not images:
+        print("No images to display")
+        return
+        
+    # Calculate number of rows needed
+    n_images = len(images)
+    rows = math.ceil(n_images / cols)
+    
+    # Create figure and subplots
+    fig = plt.figure(figsize=figsize)
+    if suptitle:
+        fig.suptitle(suptitle, fontsize=16)
+    
+    # If no titles provided, create numbered titles
+    if titles is None:
+        titles = [f'Image {i+1}' for i in range(n_images)]
+    
+    # Display each image
+    for i, (img, title) in enumerate(zip(images, titles)):
+        ax = fig.add_subplot(rows, cols, i + 1)
+        
+        # Handle different image types
+        try:
+            if img.mode == 'L':  # If image is grayscale
+                plt.imshow(img, cmap='gray')
+            else:
+                plt.imshow(img)
+        except AttributeError:  # If img is numpy array
+            plt.imshow(img)
+            
+        ax.set_title(title)
+        ax.axis('off')  # Hide axes
+    
+    # Adjust layout to prevent overlap
+    plt.tight_layout()
+    
+    # If there's a main title, adjust layout to prevent overlap
+    if suptitle:
+        plt.subplots_adjust(top=0.9)
+    
+    # Show the plot
+    plt.show()
+
+
 def prepare_images(images, image_processor, device):
     """Process a list of PIL images into tensor format expected by OpenFlamingo
     
@@ -143,6 +202,15 @@ def main():
     
     # Load demo images
     images = load_demo_images()
+
+    # Display the loaded images with custom settings
+    display_images(
+        images=images,
+        titles=['Two Cats', 'Bathroom Sink', 'Query Image'],
+        cols=3,
+        figsize=(15, 5),
+        suptitle=''
+    )
     
     # Process images into correct format
     vision_x = prepare_images(images, image_processor, config.device)
