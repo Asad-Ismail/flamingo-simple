@@ -26,9 +26,9 @@ Inspired by:
 
 ```python
 # Vision Encoding
-input_image = (2, 1, 1, 3, 224, 224)
+input_image = (2, 1, 2, 3, 224, 224)
 
-# Input Shape (B=2, T_img=1, F=1, C=3, H=224, W=224)
+# Input Shape (B=2, T_img=1, F=2, C=3, H=224, W=224)
 #  - B: batch size
 #  - T_img: temporal dimension
 #  - F: frames
@@ -36,11 +36,11 @@ input_image = (2, 1, 1, 3, 224, 224)
 #xs  - H/W: height/width
 
 vision_features = vision_encoder(input_image)  # CLIP ViT-L-14
-# Output shape: (2, 256, 1024)  # (batch, sequence_length, hidden_dim)
+# Output shape: (4, 256, 1024)  # (batch, sequence_length, hidden_dim)
 
 # Reshape for perceiver
 vision_x = rearrange(vision_x, "(b T F) v d -> b T F v d", b=b, T=T, F=F)
-# Shape: (2, 1, 1, 256, 1024)
+# Shape: (2, 1, 2, 256, 1024)
 
 # PerceiverResampler converts variable-length visual features to fixed length
 perceiver_output = perceiver(vision_features)
@@ -51,29 +51,27 @@ perceiver_output = perceiver(vision_features)
 
 ``` python
 def perceiver_resampler(
-    x_f,                # Shape: [2, 256, 1024] - Visual features 
-    x,                  # Shape: [2, 64, 1024] - Learned latents (R=64)
+    x_f,                # Shape: [4, 256, 1024] - Visual features 
+    x,                  # Shape: [4, 64, 1024] - Learned latents (R=64)
     num_layers,         # Number of layers (scalar)
 ):
     # Flatten
-    # [2, 256, 1024] -> [2, 256, 1024] (we keep batch dimension)
-    x_f = flatten(x_f)
 
     for i in range(num_layers):
         # Attention step
-        # x shape: [2, 64, 1024] (queries)
-        # concat([x_f, x]) shape: [2, 320, 1024] (keys/values) (320 = 256 + 64)
-        # attention_output shape: [2, 64, 1024]
-        # x + attention_output shape: [2, 64, 1024]
+        # x shape: [4, 64, 1024] (queries)
+        # concat([x_f, x]) shape: [4, 320, 1024] (keys/values) (320 = 256 + 64)
+        # attention_output shape: [4, 64, 1024]
+        # x + attention_output shape: [4, 64, 1024]
         x = x + attention_i(q=x, kv=concat([x_f, x]))
         
         # Feed forward step
-        # Input shape: [2, 64, 1024]
-        # ffw_output shape: [2, 64, 1024]
-        # x + ffw_output shape: [2, 64, 1024]
+        # Input shape: [4, 64, 1024]
+        # ffw_output shape: [4, 64, 1024]
+        # x + ffw_output shape: [4, 64, 1024]
         x = x + ffw_i(x)
     
-    # output shape: [2, 64, 1024]
+    # output shape: [4, 64, 1024]
     return x
 ```
 
@@ -135,8 +133,8 @@ model = Flamingo(
 
 ```python
 # Input Processing
-#inputs_ids = [2x20]  # Initial input shape from tokenization
-inputs_embeds = self.embed_tokens(input_ids)  # Shape: [2x20x768]
+#inputs_ids = [2x256]  # Initial input shape from tokenization
+inputs_embeds = self.embed_tokens(input_ids)  # Shape: [2x256x768]
 position_embedding = OPTLearnedPositionalEmbedding(2050, 768)
 
 # For each decoder layer DO:
