@@ -26,25 +26,25 @@ Inspired by:
 
 ```python
 # Vision Encoding
-input_image = (2, 1, 2, 3, 224, 224)
+input_image = (2, 2, 1, 3, 224, 224)
 
-# Input Shape (B=2, T_img=1, F=2, C=3, H=224, W=224)
+# Input Shape (B=2, T=2, T_img=1, C=3, H=224, W=224)
 #  - B: batch size
-#  - T_img: temporal dimension
-#  - F: frames
+#  - T_img: for interleaved images
+#  - F: frames (for video frames)
 #  - C: channels
 #xs  - H/W: height/width
 
 vision_features = vision_encoder(input_image)  # CLIP ViT-L-14
-# Output shape: (4, 256, 1024)  # (batch, sequence_length, hidden_dim)
+# Output shape: (4, 256, 1024)  # (batch,sequence_length, hidden_dim)
 
 # Reshape for perceiver
 vision_x = rearrange(vision_x, "(b T F) v d -> b T F v d", b=b, T=T, F=F)
-# Shape: (2, 1, 2, 256, 1024)
+# Shape: (2, 2, 1, 256, 1024)
 
 # PerceiverResampler converts variable-length visual features to fixed length
 perceiver_output = perceiver(vision_features)
-# Output shape: (2, 1, 64, 1024)  # (batch, temporal, num_latents, dim)
+# Output shape: (2, 2, 64, 1024)  # (batch, temporal, num_latents, dim)
 ```
 
 **Perceiver Resampler Module**
@@ -133,7 +133,7 @@ model = Flamingo(
 
 ```python
 # Input Processing
-#inputs_ids = [2x256]  # Initial input shape from tokenization
+#inputs_ids = [2x256]  (Batch x tokenids)# Initial input shape from tokenization
 inputs_embeds = self.embed_tokens(input_ids)  # Shape: [2x256x768]
 position_embedding = OPTLearnedPositionalEmbedding(2050, 768)
 
@@ -147,6 +147,7 @@ lang_x = self.gated_cross_attn_layer(
     media_locations=self.media_locations,
     use_cached_media=self.use_cached_media,
 ) # [2, 256, 768] [B, T_txt, D_txt]
+
 lang_x = self.decoder_layer(lang_x, attention_mask=attention_mask) # [2, 256, 768] [B, T_txt, D_txt]
 logits = self.lm_head(outputs) # Projects to output Vocab dim [2, 256, 50267] [B, T_txt, D_vocab]
 
@@ -160,8 +161,8 @@ The gated cross-attention allows the model to only selectively attend to visual 
 ```python
 def forward(self, x, media, media_locations):
     # Input shapes:
-    # x: [B, T_txt, D_txt] = [2, 256, 512]        # 8 text tokens
-    # media: [B, T_img, n, D] = [2, 2, 64, 1024]  # 2 images, 64 tokens each
+    # x: [B, T_txt, D_txt] = [2, 256, 768]       
+    # media: [B, T_img, n, D] = [4, 1, 64, 1024]  # 2 images, 64 tokens each
     # media_locations: [B, T_txt] = [2, 256]        # Binary mask for <image> positions in text
 
     # Create Q, K, V
