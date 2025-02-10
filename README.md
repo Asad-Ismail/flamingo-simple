@@ -63,7 +63,7 @@ def perceiver_resampler(
         # concat([x_f, x]) shape: [2,2, 320, 1024] (keys/values) (320 = 256 + 64)
         # attention_output shape: [2,2, 64, 1024]
         # x + attention_output shape: [2,2, 64, 1024]
-        x = x + attention_i(q=x, kv=concat([x_f, x]))
+        x = x + attention_i(q=x, kv=concat([x_f, x],dim=-2))
         
         # Feed forward step
         # Input shape: [2,2, 64, 1024]
