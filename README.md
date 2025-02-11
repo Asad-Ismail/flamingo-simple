@@ -3,6 +3,8 @@
 
 This is a simplified reimplementation of the Flamingo model [Flamingo Paper](https://arxiv.org/pdf/2204.14198), focused on single GPU training with smaller datasets for educational purposes. The goal is to understand the core mechanics without the complexity of distributed training.
 
+📺 [Explanation Youtube video](https://www.youtube.com/watch?v=GjAJJnKN2CY)
+
 Inspired by:
 - [Open Flamingo](https://github.com/mlfoundations/open_flamingo) -Completely based on this
 - [Mini Flamingo](https://github.com/dhansmair/flamingo-mini/) - Another good implemntation
